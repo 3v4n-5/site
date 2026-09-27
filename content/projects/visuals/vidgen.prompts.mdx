@@ -1,0 +1,43 @@
+# Prompts
+
+**Motion** prompts for Wan 2.2 image-to-video. The still supplies the scene; the prompt says only what moves.
+
+Run videos:
+```bash
+imgen s1 --workflow workflows/wan22_i2v_l4.json --image still.png   # one clip
+imgen-sweep NAME --plan plan.tsv --variant l4                        # still × motion plan, one pod
+```
+Plan lines are `image<TAB>spec,spec`. A spec is `m15` (one segment), `m17>m29` (chained: each segment seeded from the previous last frame, colour-anchored to the base still) or `m40|m42|m41~1.5` (hard cuts from the base still, 1.5×).
+
+**Rules:**
+- The `l4` workflow runs at CFG 1, so the negative prompt has no effect. Wording is the only control; never name the unwanted thing, even negated.
+- Move only what the still already holds. Prompts that name a creature arriving make Wan add one when the still has none, usually badly.
+- No fluid, spray or debris. Wan renders water bursting out of nothing.
+- Nothing freezes, lands or settles, so a clip has no still ending and chains into the next segment.
+- No two prompts alike: each output gets its own prompt, derived from its still.
+
+---
+
+## Motion (first set)
+
+3. Violent chaotic handheld camera, hard shaking, fast whip pans and sudden jerking zooms. The biomechanical form convulses and lunges at the camera, cables thrash, sparks burst, lights strobe on and off, debris flies through the frame. Frantic panicked movement, motion blur, glitching found footage, sensor grain.
+5. The room is still for a moment, then a biomechanical creature bursts out of the darkness at the back, scuttles fast across the floor on many legs, climbs over the equipment and leaps at the lens, again and again. The camera jolts and swings wildly and never settles.
+6. The creature rears up and convulses, limbs thrashing, then charges the camera and slams into it repeatedly. The image shakes violently, sparks burst from the cables, the lights strobe, and the camera keeps spinning.
+
+## Motion (organisms: flesh, remains, specimens)
+
+15. The body lies still, then its chest slowly rises and falls as if breathing, and the skin ripples as something moves underneath it.
+17. Time-lapse. Pale fungus spreads across the body, stalks rise and swell, the flesh darkens and sinks inward.
+23. Macro. The tissue pulses and breathes, pores open and close, fluid beads and runs.
+
+## Motion (fluid and chaotic, non-violent)
+
+27. The creature twitches and jitters erratically, its limbs flickering between positions, never still.
+30. The camera jitters and drifts erratically while the lights stutter, and the body is in a slightly different position in every flash.
+33. The body moves in one long continuous fluid motion, uncoiling and stretching across the frame and curling back again.
+
+## Motion (intense, v2)
+
+43. Violent handheld camera with hard shaking, fast whip pans and sudden crash zooms onto the body already in the frame, which jerks and twitches in place.
+44. The body already in the frame convulses violently in fast hard spasms while the camera shakes and rattles.
+45. Harsh strobing light cuts between black and blinding flashes; in each flash the body already in the frame is twisted into a different pose.

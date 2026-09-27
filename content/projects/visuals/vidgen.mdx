@@ -1,0 +1,74 @@
+---
+title: VidGen
+updated: 2026-09-27
+---
+
+import RefPreview from '../../../src/components/RefPreview'
+import RefContent from './imgen.ref.mdx'
+import PromptsContent from './vidgen.prompts.mdx'
+
+The video half of [Imgen](/projects/visuals/imgen): kept stills animated by Wan 2.2 image-to-video on a throwaway RunPod pod, driven from the same local CLI.
+
+Generation runs in stages: hand-jotted notes → <RefPreview><RefContent /></RefPreview> → stills → <RefPreview label="prompts.md"><PromptsContent /></RefPreview> → video. The still supplies the scene; the motion prompt says only what moves.
+
+## Pipeline
+
+**1. Still.** A kept SDXL render from Imgen, e.g. `c003-A_xeno_high-s11453`.
+
+**2. Still → video.** Wan 2.2 i2v 14B (fp8) renders 81 frames at 16 fps, 640²: one 5 s segment. The high-noise expert lays out the motion, the low-noise expert refines it. Lightning LoRAs cut the step count from 30 to 4–8.
+
+**3. Sweep.** `imgen-sweep` runs a plan of still × motion specs on one pod: single segments, chains (each segment seeded from the previous last frame, colour-anchored to the base still), or hard cuts back to the base still. Resumable; `index.tsv` records still, motion prompt, workflow, seed and render time.
+
+## Workflows
+
+Motion scores are from one violent test prompt.
+
+- **`l4`**: Lightning LoRAs at 1.0, 4 steps, CFG 1. Stable colour, motion 4.0. Current default.
+- **`lightning`**: Lightning at 0.4, 8 steps. Stable colour, motion 2.2. Too tame.
+- **`hybrid`, `hot`**: motion 4–6, but colour drifts to flat green within one segment.
+- **No Lightning**: 30 steps, CFG 6. ~30 min per segment on a 4090.
+
+ The clips below are from the first two sweeps, before `l4`: one `lightning`, four `hybrid`.
+
+## Setup
+
+- ComfyUI on RunPod (4090, then A6000, then L40S), driven headless from a local CLI
+- One pod per invocation: create → watchdog → pull models (~38 GB, ~2.5 min) → generate → terminate. No network volume and no stopped pods, since both bill while idle
+- On-pod watchdog terminates after 15 min idle, one job over 20 min, or a session over 90 min; every local exit path terminates too, and each command ends with an account check for stray pods
+- Review in a local browser viewer: arrow keys move, Delete rejects, F favourites
+
+## Review
+
+From 314 favourited clips:
+- Moving-but-not-violent clips beat intense ones.
+- Intense prompts that name a creature arriving add one when the still has none.
+- Prompts with fluid, spray or debris produce water bursting from nowhere.
+- Hard cuts jump back to the opening frame at every cut. With `l4` and the colour anchor, intense clips chain instead.
+- Low prompt variety: 6 intense prompts across ~150 clips spread the same faults everywhere. Now one prompt per output.
+
+## Selected
+
+<figure className="my-8">
+  <video src="/videos/vidgen/m003-c003-A_xeno_high-s11453-lightning-s210752086.mp4" autoPlay loop muted playsInline preload="metadata" className="block w-full aspect-square bg-black" />
+  <figcaption className="mt-3 italic text-sm text-white/60">Violent chaotic handheld camera, hard shaking, fast whip pans and sudden jerking zooms. The biomechanical form convulses and lunges at the camera, cables thrash, sparks burst, lights strobe on and off, debris flies through the frame. Frantic panicked movement, motion blur, glitching found footage, sensor grain.</figcaption>
+</figure>
+
+<figure className="my-8">
+  <video src="/videos/vidgen/m005-c003-hybrid-s404669600.mp4" autoPlay loop muted playsInline preload="metadata" className="block w-full aspect-square bg-black" />
+  <figcaption className="mt-3 italic text-sm text-white/60">The room is still for a moment, then a biomechanical creature bursts out of the darkness at the back, scuttles fast across the floor on many legs, climbs over the equipment and leaps straight at the lens. The camera jolts, tilts and drops to the floor. Sudden violent motion, found footage, motion blur, sensor grain.</figcaption>
+</figure>
+
+<figure className="my-8">
+  <video src="/videos/vidgen/m006-c003-hybrid-s1115180626.mp4" autoPlay loop muted playsInline preload="metadata" className="block w-full aspect-square bg-black" />
+  <figcaption className="mt-3 italic text-sm text-white/60">The creature rears up and convulses, limbs thrashing, then charges the camera and slams into it; the image shakes violently, sparks burst from the cables, lights strobe red and white, the camera spins and falls. Frantic, chaotic, glitching found footage, motion blur, sensor grain.</figcaption>
+</figure>
+
+<figure className="my-8">
+  <video src="/videos/vidgen/m006-s001-hybrid-s898151784.mp4" autoPlay loop muted playsInline preload="metadata" className="block w-full aspect-square bg-black" />
+  <figcaption className="mt-3 italic text-sm text-white/60">Same prompt, scene still s001.</figcaption>
+</figure>
+
+<figure className="my-8">
+  <video src="/videos/vidgen/m006-s003-hybrid-s1533556408.mp4" autoPlay loop muted playsInline preload="metadata" className="block w-full aspect-square bg-black" />
+  <figcaption className="mt-3 italic text-sm text-white/60">Same prompt, scene still s003.</figcaption>
+</figure>
