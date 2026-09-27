@@ -1,0 +1,45 @@
+---
+title: usage-ring
+updated: 2026-09-27
+---
+
+Claude plan usage as two rings in the macOS menu bar. Outer ring: the 5-hour window. Inner ring: the weekly limit. Click for exact percentages and reset times.
+
+## Data
+
+- `GET https://api.anthropic.com/api/oauth/usage`, the endpoint Claude Code's `/usage` reads. Undocumented, so it may change.
+- Authenticates with Claude Code's own OAuth token, read from the keychain item `Claude Code-credentials` through `/usr/bin/security`. The item already trusts that binary, so the app never raises a keychain prompt.
+- Read only. Renewing the token stays Claude Code's job; two writers to its keychain item would race.
+
+## Refresh
+
+Event-driven, no polling loop:
+
+- at launch and on wake
+- when anything under `~/.claude/projects` changes (FSEvents), since Claude Code appends to its session transcripts as it works; bursts collapse to at most one request a minute
+- when the menu opens (at most every 10 s)
+- just after each reset time, when a ring drops back to empty
+
+A failed refresh keeps the last good rings and says why in the menu.
+
+## Icon
+
+Drawn in code as a template image, so the menu bar tints it for light and dark: faint track, solid fill, clockwise from twelve o'clock.
+
+## Stack
+
+- Swift 5.9, AppKit, one file, no dependencies
+- Swift Package Manager; `build.sh` installs the binary to `~/.local/bin` and runs it as a launchd agent
+- macOS 14+
+
+## Install
+
+Needs Claude Code signed in with a Claude subscription.
+
+```sh
+git clone https://github.com/3v4n-5/usage-ring && cd usage-ring && ./build.sh
+```
+
+## Repository
+
+<a href="https://github.com/3v4n-5/usage-ring" target="_blank" rel="noreferrer">github.com/3v4n-5/usage-ring</a>
